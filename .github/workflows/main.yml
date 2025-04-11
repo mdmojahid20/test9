@@ -1,0 +1,39 @@
+name: Sync on Dispatch
+
+on:
+  repository_dispatch:
+    types: [sync-code]
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo B
+        uses: actions/checkout@v3
+
+      - name: Clone Repo A (Dev)
+        run: |
+          git clone https://mdmojahid19:${{ secrets.PAT_FOR_GIT }}@github.com/mdmojahid19/test9.git temp-repo
+          cp -r temp-repo/* .
+          rm -rf temp-repo
+
+      - name: Commit & Push
+        env:
+          GH_TOKEN: ${{ secrets.PAT_FOR_GIT }}
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Synced from Repo A" || echo "No changes to commit"
+          git push https://x-access-token:${PAT_FOR_GIT}@github.com/mdmojahid20/test9.git HEAD:main
+          
+      - name: Trigger Deploy Workflow
+        env:
+          GH_TOKEN: ${{ secrets.PAT_FOR_GIT }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/mdmojahid20/test9/actions/workflows/deploy.yml/dispatches \
+            -d '{"ref":"main"}'
