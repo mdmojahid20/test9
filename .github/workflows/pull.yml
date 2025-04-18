@@ -1,0 +1,16 @@
+# .github/workflows/on-dispatch.yml
+name: On Dispatch - Sync Code
+
+on:
+  repository_dispatch:
+    types: [sync-code]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Pull latest changes from Dev repo (if needed)
+        run: echo "You can perform actions here, like pulling code, building, deploying, etc."
