@@ -1,0 +1,39 @@
+name: Deploy Website on Any Event
+
+on:
+  # Triggers on all types of events
+  push:
+  pull_request:
+  workflow_dispatch:
+  issues:
+  issue_comment:
+  create:
+  delete:
+  fork:
+  watch:
+  release:
+  deployment:
+  pull_request_review:
+  pull_request_review_comment:
+  
+
+jobs:
+  deploy:
+    name: Deploy via Self-Hosted Runner
+    runs-on: self-hosted  # Runs on your GCP VM
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Delete all previous files from Nginx root
+        run: |
+          sudo rm -rf /var/www/html/*
+
+      - name: Copy updated files to Nginx root
+        run: |
+          sudo cp -r . /var/www/html/
+
+      - name: (Optional) Restart Nginx
+        run: |
+          sudo systemctl restart nginx
