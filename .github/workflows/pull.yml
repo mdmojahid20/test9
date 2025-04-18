@@ -35,3 +35,14 @@ jobs:
           git add .
           git diff --cached --quiet || git commit -m "Sync from Dev Repo"
           git push origin main
+
+          
+      - name: Trigger Deploy Workflow
+        env:
+          GH_TOKEN: ${{ secrets.PAT_PR }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/mdmojahid20/test9/actions/workflows/deploy.yml/dispatches \
+            -d '{"ref":"main"}'
