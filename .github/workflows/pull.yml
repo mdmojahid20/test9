@@ -20,11 +20,20 @@ jobs:
 
       - name: Commit & Push
         env:
-          GH_TOKEN: ${{ secrets.PAT_FOR_GIT }}
+          GH_TOKEN: ${{ secrets.PAT_PR }}
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
           git commit -m "Synced from Repo A" || echo "No changes to commit"
-          git push https://x-access-token:${PAT_PR}@github.com/mdmojahid20/test7.git HEAD:main
-          
+          git push https://x-access-token:${PAT_PR}@github.com/mdmojahid20/test9.git HEAD:main
+
+      - name: Trigger Deploy Workflow
+        env:
+          GH_TOKEN: ${{ secrets.PAT_PR }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/mdmojahid20/test9/actions/workflows/deploy.yml/dispatches \
+            -d '{"ref":"main"}'
