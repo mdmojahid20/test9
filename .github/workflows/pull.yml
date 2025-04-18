@@ -1,16 +1,30 @@
-# .github/workflows/on-dispatch.yml
-name: On Dispatch - Sync Code
+name: Sync on Dispatch
 
 on:
   repository_dispatch:
     types: [sync-code]
 
 jobs:
-  sync:
+  pull:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout Repo B
         uses: actions/checkout@v3
 
-      - name: Pull latest changes from Dev repo (if needed)
-        run: echo "You can perform actions here, like pulling code, building, deploying, etc."
+      - name: Clone Repo A (Dev)
+        run: |
+          git clone https://mdmojahid19:${{ secrets.PAT_PR }}@github.com/mdmojahid19/test9.git temp-repo
+          cp -r temp-repo/* .
+          rm -rf temp-repo
+
+      - name: Commit & Push
+        env:
+          GH_TOKEN: ${{ secrets.PAT_FOR_GIT }}
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Synced from Repo A" || echo "No changes to commit"
+          git push https://x-access-token:${PAT_PR}@github.com/mdmojahid20/test7.git HEAD:main
+          
