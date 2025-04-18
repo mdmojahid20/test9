@@ -1,39 +1,37 @@
-name: Sync on Dispatch
+name: Sync Code from Dev
 
 on:
   repository_dispatch:
     types: [sync-code]
 
 jobs:
-  pull:
+  sync-code:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo B
+      - name: Checkout Prod Repo
         uses: actions/checkout@v3
 
-      - name: Clone Repo A (Dev)
-        run: |
-          git clone https://mdmojahid19:${{ secrets.PAT_PR }}@github.com/mdmojahid19/test9.git temp-repo
-          cp -r temp-repo/* .
-          rm -rf temp-repo
-
-      - name: Commit & Push
+      - name: Clone Dev Repo and Copy Code
         env:
-          GH_TOKEN: ${{ secrets.PAT_PR }}
+          PAT: ${{ secrets.PAT_DEV }}
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "actions@github.com"
+
+          # Clean everything except .git and workflows
+          shopt -s extglob
+          rm -rf !(.git|.github)
+
+          # Clone Dev repo
+          git clone https://mdmojahid19:${PAT}@github.com/mdmojahid19/test9.git dev-repo-temp
+
+          # Copy files from Dev repo to Prod repo
+          cp -r dev-repo-temp/* ./
+          rm -rf dev-repo-temp
+
+      - name: Commit & Push Changes to Prod
+        run: |
           git add .
-          git commit -m "Synced from Repo A" || echo "No changes to commit"
-          git push https://x-access-token:${PAT_PR}@github.com/mdmojahid20/test9.git HEAD:main
-
-      - name: Trigger Deploy Workflow
-        env:
-          GH_TOKEN: ${{ secrets.PAT_PR }}
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            https://api.github.com/repos/mdmojahid20/test9/actions/workflows/deploy.yml/dispatches \
-            -d '{"ref":"main"}'
+          git diff --cached --quiet || git commit -m "Sync from Dev Repo"
+          git push origin main
